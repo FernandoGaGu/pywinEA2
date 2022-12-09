@@ -8,10 +8,13 @@ import os
 import traceback
 from datetime import datetime
 
+from .wrapper import FeatureSelectionGA, MultiObjFeatureSelectionNSGA2
+
 
 def save(obj: object, path: str, extension: str = None):
     """
     Method to serialize any type of object received as an argument.
+
     Parameters
     ----------
     obj: object
@@ -42,6 +45,7 @@ def save(obj: object, path: str, extension: str = None):
 def load(path: str) -> object:
     """
     Method to deserialize the object stored in the file received as argument.
+
     Parameters
     ----------
     :param path: str
@@ -53,6 +57,10 @@ def load(path: str) -> object:
     try:
         with open(path, 'rb') as input_file:
             obj = pickle.load(input_file)
+
+            # hack. Register deap internals
+            if isinstance(obj, (FeatureSelectionGA, MultiObjFeatureSelectionNSGA2)):
+                obj._register()
 
         return obj
     except pickle.UnpicklingError as e:

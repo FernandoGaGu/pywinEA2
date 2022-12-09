@@ -12,8 +12,28 @@ from pywinEA2 import report as pea2_report
 
 def run(alg: pea2_base.BaseWrapper, type: str = 'eaSimple', verbose: bool = True, hof_size: int = 1,
         **kwargs) -> pea2_report.Report:
-    """ DESCRIPTION
-    todo. parallel execution
+    """ Function used to execute the algorithms.
+    
+    Parameters
+    ----------
+    :param alg: 
+    :param type: str, default='eaSimple'
+        
+        Implemented mono-objective genetic algorithms:
+            - 'eaSimple'
+            - 'eaMuPlusLambda'
+            - 'eaMuCommaLambda'
+            - 'eaSimpleWithElitism'
+            - 'eaMuCommaLambdaWithElitism'
+        
+        Implemented multi-objective genetic algorithms:
+            - 'nsga2'
+
+        For more information see https://deap.readthedocs.io/en/master/api/algo.html
+        
+    :param verbose: bool, default=True
+    :param hof_size: int, default=1
+        Hall of fame size.
 
     **kwargs
     lambda_ and mu for 'eaMuCommaLambda'

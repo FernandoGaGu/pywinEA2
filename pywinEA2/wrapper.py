@@ -1,5 +1,9 @@
+# Module containing the genetic algorithms
+#
+# Author: Fernando García Gutiérrez
+# Email: fgarcia@fundacioace.org
+#
 import random
-
 import pandas as pd
 import numpy as np
 import sklearn
@@ -16,13 +20,59 @@ from pywinEA2 import validation as pea2_valid
 
 
 class FeatureSelectionGA(pea2_base.BaseWrapper):
-    """
-    Supervised learning
+    """ Class implementing a genetic algorithm for feature selection.
 
-    todo. block access to internal attributes
-    todo. option for minimization
-    todo. add support for crossover operators
-    todo. add support for other selection operators
+    Parameters
+    ----------
+    :param data: pd.DataFrame
+    :param model: sklearn.base.BaseEstimator
+    :score: str
+        Scoring function to be optimized.
+    :param y: list
+        Dependent variable (regression tasks) or task-label (classification tasks).
+    :param population_size: int
+    :param max_generations: int
+    :param optim: str
+        Optimization to be performed. Indicate "max" for maximization or "min" for 
+        minimizations.
+    :param objective_kw: dict, default=None
+        Additional arguments used by the scoring function.
+    :param p_crossover: float, default=0.5
+        Crossover probability.
+    :param crossover_op: str, default='one_point'
+        Crossover operator.
+    :param crossover_kw: dict, default=None
+        Additional parameters for the crossover operator.
+        See FeatureSelectionGA.DEFAULT_CROSSOVER_ARGS
+    :param p_mutation: float, default=0.2
+        Mutation probability.
+    :param mutation_op: str, default='bit_flip'
+        Mutation operator.
+    :param mutation_kw: dict, default=None
+        Additional parameters for the mutation operator. 
+        See FeatureSelectionGA.DEFAULT_MUTATION_ARGS
+    :param selection_op: str, default='tournament'
+        Selection operator. 
+    :param selection_kw: dict, default=None
+        Additional parameters for the selection operator
+        See FeatureSelectionGA.DEFAULT_SELECTION_ARGS
+    :param fixed_feats: list, default=None
+        Features that will not be subjected to the feature selection process and will 
+        always be  included. By default there will be no fixed features
+    :param target_feats: list, default=None
+        Feature to be subjected to the feature selection process. By default all features 
+        excluding the feature specifyied in the "y" variable will be used.
+    :param cv: int, default=None
+        Number of folds used to evaluate the model performance. By default no cross validation 
+        will be used.
+    :param cv_reps: int, default=None
+        Number of repetitions of the cross-validation scheme. By default no repetitions will 
+        used.
+    :param stratified: bool, default=False
+        Indicates whether to use class stratification when applying a cross-validation schema.
+    :param random_ssed: int, default=None
+        Random seed.
+    :param n_jobs: int, default=1
     """
     MIN_NUM_FEATURES = 2     # todo. update
 
@@ -71,11 +121,11 @@ class FeatureSelectionGA(pea2_base.BaseWrapper):
             objective_kw: dict = None,
             # genetic algorithm operators
             p_crossover: float = 0.5,
+            crossover_op: str = 'one_point',
+            crossover_kw: dict = None,
             p_mutation: float = 0.2,
             mutation_op: str = 'bit_flip',
             mutation_kw: dict = None,
-            crossover_op: str = 'one_point',
-            crossover_kw: dict = None,
             selection_op: str = 'tournament',
             selection_kw: dict = None,
             # optimized features
@@ -315,14 +365,11 @@ class FeatureSelectionGA(pea2_base.BaseWrapper):
             'n_jobs': n_jobs}
 
     def _register(self):
-        """ DESCRIPTION
-        This method was created for encapsulation
-        """
+        """ This method was created for encapsulation. """
         self.clearToolbox()
 
         # register deap elements
         # -- create fitness function
-        # todo. current support mono-objective, extend for multi-objective
         if self._optim == 'max':
             creator.create('Fitness', base.Fitness, weights=(1.0,))
         elif self._optim == 'min':
@@ -345,11 +392,10 @@ class FeatureSelectionGA(pea2_base.BaseWrapper):
 
 
 class MultiObjFeatureSelectionNSGA2(FeatureSelectionGA):
-    """ todo. inform about the selection operator (not used)"""
+    """ Extension of class FeatureSelectionGA to optimize the objective function and minimize the number of features 
+    using the NSGAII algorithm. """
     def _register(self):
-        """ DESCRIPTION
-        This method was created for encapsulation
-        """
+        """ This method was created for encapsulation """
         self.clearToolbox()
         # create wrapper for multi-objective fitness
         # -- create fitness function
@@ -375,9 +421,3 @@ class MultiObjFeatureSelectionNSGA2(FeatureSelectionGA):
         self._toolbox.register('select', tools.selNSGA2)
         self._toolbox.register('mate', FeatureSelectionGA.VALID_CROSSOVER_OPERATORS[self._crossover_op], **self._crossover_kw)
         self._toolbox.register('mutate', FeatureSelectionGA.VALID_MUTATION_OPERATORS[self._mutation_op], **self._mutation_kw)
-
-
-
-
-
-

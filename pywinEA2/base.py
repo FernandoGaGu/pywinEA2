@@ -1,8 +1,14 @@
+# Module containing the abstract classes used by the framework
+#
+# Author: Fernando García Gutiérrez
+# Email: fgarcia@fundacioace.org
+#
 import multiprocessing as mp
 from abc import ABCMeta, abstractmethod
 
 
 class BaseWrapper(object):
+    """ Class inherited by all the wrappers of the algorithms implemented in this framework. """
     __metaclass__ = ABCMeta
 
     def __getitem__(self, key: str):
@@ -15,12 +21,12 @@ class BaseWrapper(object):
 
     @abstractmethod
     def getParams(self) -> dict:
-        """ DESCRIPTION """
+        """ Returns a dictionary with the model parameters """
         raise NotImplementedError
 
     @abstractmethod
     def getToolbox(self) -> dict:
-        """ DESCRIPTION """
+        """ Returns the deap toolbox """
         raise NotImplementedError
 
     @abstractmethod
@@ -43,9 +49,7 @@ class BaseWrapper(object):
 
 
 class FitnessStrategy(object):
-    """ DESCRIPTION
-    todo. convert to abstract class
-    """
+    """ Class inherited by all the objective functions used by the algorithms of the framework. """
     __metaclass__ = ABCMeta
 
     def __init__(self, **kwargs):
@@ -57,7 +61,4 @@ class FitnessStrategy(object):
 
     @abstractmethod
     def __call__(self, **kwargs) -> tuple:
-        # todo. convert to abstract method
         raise NotImplementedError
-
-

@@ -27,7 +27,7 @@ def getDataset() -> pd.DataFrame:
 if __name__ == '__main__':
     # genetic algorithm parameters
     POPULATION_SIZE = 100
-    MAX_GENERATIONS = 100
+    MAX_GENERATIONS = 50
     OPTIM_SCORE = 'mean_squared_error'
     OPTIM = 'min'
     PROB_MUTATION = 0.25
@@ -58,7 +58,9 @@ if __name__ == '__main__':
         target_feats=data.columns.tolist()[:-1],
         optim=OPTIM,
         selection_op=SELECTION_OP,
-        mutation_op=MUTATION_OP)
+        mutation_op=MUTATION_OP,
+        n_jobs=1
+        )
 
     obj.multiprocessing(n_jobs=4)   # multiprocessing execution
 
