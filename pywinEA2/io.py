@@ -7,8 +7,11 @@ import pickle
 import os
 import traceback
 from datetime import datetime
+from alive_progress import alive_bar
+from tqdm import tqdm
 
 from .wrapper import FeatureSelectionGA, MultiObjFeatureSelectionNSGA2
+from .environment import USE_NOTEBOOK_ENVIRONMENT
 
 
 def save(obj: object, path: str, extension: str = None):
@@ -76,3 +79,25 @@ def load(path: str) -> object:
 
 def addTimePrefix(s: str) -> str:
     return '{}_{}'.format(datetime.now().strftime('%Y%m%d'), s)
+
+
+def getProgressBar(total) -> tuple:
+    def updateTQDM(_bar):
+        print(_bar)
+        _bar.update(1)
+
+    def updateAP(_bar):
+        print(_bar)
+        _bar()
+
+    if USE_NOTEBOOK_ENVIRONMENT:   # use tqdm as backend
+        print('Using TQDM')
+        bar = tqdm(total=total)
+        updateBar = updateTQDM
+    else:
+        print('Using alive bar')
+        bar = alive_bar(total, bar='fish')
+        updateBar = updateAP
+
+    return bar, updateBar
+

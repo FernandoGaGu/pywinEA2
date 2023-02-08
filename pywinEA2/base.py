@@ -62,3 +62,7 @@ class FitnessStrategy(object):
     @abstractmethod
     def __call__(self, **kwargs) -> tuple:
         raise NotImplementedError
+
+    @abstractmethod
+    def getNumFeatures(self) -> int:
+        raise NotImplementedError

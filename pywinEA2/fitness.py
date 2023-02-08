@@ -8,7 +8,7 @@ from pywinEA2 import base as pea2_base
 from pywinEA2 import validation as pea2_valid
 
 
-def aucScore(y_pred, y_true):
+def aucScore(y_pred: np.ndarray, y_true: np.ndarray):
     """ Wrapper for sklearn.metrics.roc_auc_score function """
     return sk_metrics.roc_auc_score(y_true=y_true, y_score=y_pred)
 
@@ -27,9 +27,16 @@ class FeatureSelectionFitness(pea2_base.FitnessStrategy):
     }
     SCORES_TO_INVERT = ['mean_absolute_error', 'mean_squared_error']   # sklearn returns negative values
 
-    def __init__(self, model: sklearn.base.BaseEstimator, score: str, X: np.ndarray, y: np.ndarray,
-                 X_fixed: np.ndarray or None = None, cv: BaseCrossValidator or None = None, return_std: bool = False,
-                 n_jobs: int = 1, **_):
+    def __init__(
+            self,
+            model: sklearn.base.BaseEstimator,
+            score: str,
+            X: np.ndarray,
+            y: np.ndarray,
+            X_fixed: np.ndarray or None = None,
+            cv: BaseCrossValidator or None = None,
+            return_std: bool = False,
+            n_jobs: int = 1, **_):
 
         super(FeatureSelectionFitness, self).__init__()
 
@@ -44,6 +51,9 @@ class FeatureSelectionFitness(pea2_base.FitnessStrategy):
         self._score = FeatureSelectionFitness.VALID_SCORES[score.lower()]
         self._return_std = return_std
         self._score_repr = score.lower()
+
+    def getNumFeatures(self) -> int:
+        return self._X.shape[1]
 
     def __call__(self, features: np.ndarray or list) -> tuple:
         """
@@ -100,9 +110,18 @@ class FeatureSelectionFitnessMinFeats(FeatureSelectionFitness):
     """ DESCRIPTION
     todo. add possibility of exponentiate
     """
-    def __init__(self, model: sklearn.base.BaseEstimator, score: str, X: np.ndarray, y: np.ndarray,
-                 scale_features: callable = None, X_fixed: np.ndarray or None = None,
-                 cv: BaseCrossValidator or None = None, return_std: bool = False, n_jobs: int = 1, **_):
+    def __init__(
+            self,
+            model: sklearn.base.BaseEstimator,
+            score: str,
+            X: np.ndarray,
+            y: np.ndarray,
+            scale_features: callable = None,
+            X_fixed: np.ndarray or None = None,
+            cv: BaseCrossValidator or None = None,
+            return_std: bool = False,
+            n_jobs: int = 1,
+            **_):
 
         super(FeatureSelectionFitnessMinFeats, self).__init__(
             model=model, score=score, X=X, y=y, X_fixed=X_fixed, cv=cv, return_std=return_std, n_jobs=n_jobs)
