@@ -132,11 +132,17 @@ def clpsoPositionUpdate(
         particle: Particle,
         inertia: float,
         acc_const1: float,
+        acc_const2: float = None,
         clip_values: tuple or np.ndarray = None,
         seed: int = None) -> Particle:
-    """ Calculate new particles speed and position using the standard PSO update rule """
+    """ Calculate new particles speed and position using the standard PSO update rule.
+    By default, the acceleration constant 2 (the one how uses gbest) is let to 0 has in the original paper.
+    """
     assert particle.exemplar is not None, \
         'particle.exemplar is None. Before calculate new position evaluate the particle.'
+    if acc_const2 is not None:
+        assert particle.gbest is not None, \
+            'particle.gbest is None. Before calculate new position evaluate the particle.'
 
     if seed is not None:
         random.seed(seed)
@@ -145,6 +151,24 @@ def clpsoPositionUpdate(
         inertia * particle.speed +
         acc_const1 * random.uniform(0, 1) * (particle.exemplar - particle.position)
     )
+
+    # integrate gbest information
+    if acc_const2 is not None:
+        if len(particle.gbest) < len(particle.exemplar):
+            # pad gbest without modifying values outside gbest
+            zero_padding_length = len(particle.exemplar) - len(particle.gbest)
+            mask = np.append(np.ones(shape=len(particle.gbest)), np.zeros(shape=zero_padding_length))
+            v_t += (
+                acc_const2 * random.uniform(0, 1) + (
+                       np.append(particle.gbest, np.zeros(shape=zero_padding_length)) - particle.position) * mask
+            )
+
+        elif len(particle.gbest) > len(particle.exemplar):
+            # cut gbest
+            v_t += acc_const2 * random.uniform(0, 1) + (particle.gbest[:len(particle.exemplar)] - particle.position)
+        else:
+            v_t += acc_const2 * random.uniform(0, 1) + (particle.gbest - particle.position)
+
     x_t = particle.position + v_t
 
     # update particle parameters

@@ -2,11 +2,11 @@ import pandas as pd
 import numpy as np
 
 
-def getLearningProb(rank: int, population_size: int) -> float:
+def getLearningProb(rank: int, population_size: int, min_prob: float = 0.05, max_prob: float = 0.5) -> float:
     """ Calculate the learning probability (based on the Conprehensive Learning PSO) """
-    numerator   = np.exp(10 * (rank - 1) / (population_size -1))
+    numerator = np.exp(10 * (rank - 1) / (population_size - 1))
     denominator = np.exp(10) - 1
-    return 0.05 + 0.45 * (numerator / denominator)
+    return min_prob + (max_prob - min_prob) * (numerator / denominator)
 
 
 def pearsonCorrImportance(data: pd.DataFrame, x_feats: list, y_feat: str, **_) -> dict:

@@ -207,27 +207,31 @@ def vanillaReferencesUpdate(
 def exemplarAssignment(particles: List[Particle]):
     """ Exemplar assignment based on the VLPSO method """
     for i, p in enumerate(particles):
-        p_length = len(p)
+        if p.renew_exemplar:
+            p_length = len(p)
 
-        for d in range(p_length):
-            if random.uniform(0, 1) < p.learning_prob:
-                # randomly pick a particle that is different from i and has a length longer than d;
-                valid_length_particles = [
-                    ii for ii, pp in enumerate(particles) if ii != i and len(pp) >= p_length]
-                rdn_idx_p1 = random.choice(valid_length_particles)
-                p1 = particles[rdn_idx_p1]
-                valid_length_particles.pop(valid_length_particles.index(rdn_idx_p1))
-                p2 = particles[random.choice(valid_length_particles)]
-                if p1.best_fitness_value >= p2.best_fitness_value:
-                    p.exemplar[d] = p1.pbest[d]
+            for d in range(p_length):
+                if random.uniform(0, 1) < p.learning_prob:
+                    # randomly pick a particle that is different from i and has a length longer than d;
+                    valid_length_particles = [
+                        ii for ii, pp in enumerate(particles) if ii != i and len(pp) >= p_length]
+                    rdn_idx_p1 = random.choice(valid_length_particles)
+                    p1 = particles[rdn_idx_p1]
+                    valid_length_particles.pop(valid_length_particles.index(rdn_idx_p1))
+                    p2 = particles[random.choice(valid_length_particles)]
+                    if p1.best_fitness_value >= p2.best_fitness_value:
+                        p.exemplar[d] = p1.pbest[d]
+                    else:
+                        p.exemplar[d] = p2.pbest[d]
                 else:
-                    p.exemplar[d] = p2.pbest[d]
-            else:
-                p.exemplar[d] = p.pbest[d]
+                    p.exemplar[d] = p.pbest[d]
+
+            p.renew_exemplar = False
 
     return particles
 
 
+# TODO. Parallelization
 def lengthChanging(particles: List[Particle]) -> List[Particle]:
     """ Length changing procedure as described in algorithm 2 of VLPSO. """
     # calculate the average fitness value per division

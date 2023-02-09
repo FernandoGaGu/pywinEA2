@@ -148,17 +148,16 @@ def psoSimple(
     return report
 
 
-
 def vlpso(
         population_size: int,
         num_population_div: int,
         fitness_function: pea2_base.FitnessStrategy,
         max_iterations: int,
         rank_function: str,
-        alpha: int = 99,   # TODO. remove None
-        beta: int = 99,    # TODO. remove None
+        alpha: int,
+        beta: int,
         rank_function_kw: dict = None,
-
+        learning_prob_kw: dict = None,
         pso_evaluation: str = 'binary',
         pso_evaluation_kw: dict = None,
         pso_reference_update: str = 'simple',
@@ -187,6 +186,7 @@ def vlpso(
 
     # select optional arguments
     rank_function_kw        = {} if rank_function_kw      is None else rank_function_kw
+    learning_prob_kw        = {} if learning_prob_kw      is None else learning_prob_kw
     pso_evaluation_kw       = {} if pso_evaluation_kw       is None else pso_evaluation_kw
     pso_reference_update_kw = {} if pso_reference_update_kw is None else pso_reference_update_kw
     particle_update_kw      = {} if particle_update_kw      is None else particle_update_kw
@@ -203,6 +203,7 @@ def vlpso(
         progress_bar = tqdm(total=max_iterations)
 
     # 1. Sort features using an importance measurement
+    fitness_function = deepcopy(fitness_function)
     x_data = pd.DataFrame(fitness_function._X)
     feature_names = ['feat_%d' % i for i in range(x_data.shape[1])]
     x_data.columns = feature_names
@@ -245,9 +246,11 @@ def vlpso(
     particle_rank = np.argsort(fitness_values)[::-1] + 1
     for p, p_rank in zip(particles, particle_rank):
         p.rank = p_rank
-        p.learning_prob = getLearningProb(p_rank, population_size)
+        p.learning_prob = getLearningProb(p_rank, population_size, **learning_prob_kw)
 
     # 7. assign exemplars
+    for p in particles:
+        p.renew_exemplar = True
     particles = exemplarAssignment(particles)
 
     # save particle stats
@@ -283,10 +286,7 @@ def vlpso(
                 p.renew_exemplar = True
         else:
             # renew exemplars if true
-            for p in particles:
-                if p.renew_exemplar:
-                    particles = exemplarAssignment(particles)
-                    p.renew_exemplar = False
+            particles = exemplarAssignment(particles)
 
             # evaluate particles
             particles = PSO_VALID_EVALUATIONS[pso_evaluation](
