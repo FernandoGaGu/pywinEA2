@@ -83,8 +83,10 @@ def displayConvergence(
     report,
     figsize: tuple = (7, 4),
     dpi: int = 100,
-    title: str = None
-    ):
+    title: str = None,
+    save_plot: str = None,
+    display: bool = True
+):
     """ DESCRIPTION """
     assert len(report.history) > 0
     report_df = pd.DataFrame(report.history).T
@@ -131,5 +133,9 @@ def displayConvergence(
         ax.set_title('PSO convergence', size=15)
     else:
         ax.set_title(title, size=15)
-    plt.show()
+
+    if save_plot is not None:
+        plt.savefig(save_plot)
+    if display:
+        plt.show()
 

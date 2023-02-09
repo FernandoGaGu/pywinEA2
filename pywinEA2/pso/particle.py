@@ -128,6 +128,23 @@ def vanillaPositionUpdate(
     return particle
 
 
+def vanillaPositionUpdateWithDynamicInertia(
+        particle: Particle,
+        inertia: float,
+        acc_const1: float,
+        acc_const2: float,
+        clip_values: tuple or np.ndarray = None,
+        seed: int = None) -> Particle:
+    inertia = inertia + 0.5 * np.exp(-np.sum(np.abs(particle.position - particle.pbest)))
+    return vanillaPositionUpdate(
+        particle=particle,
+        inertia=inertia,
+        acc_const1=acc_const1,
+        acc_const2=acc_const2,
+        clip_values=clip_values,
+        seed=seed)
+
+
 def clpsoPositionUpdate(
         particle: Particle,
         inertia: float,
@@ -159,15 +176,15 @@ def clpsoPositionUpdate(
             zero_padding_length = len(particle.exemplar) - len(particle.gbest)
             mask = np.append(np.ones(shape=len(particle.gbest)), np.zeros(shape=zero_padding_length))
             v_t += (
-                acc_const2 * random.uniform(0, 1) + (
+                acc_const2 * random.uniform(0, 1) * (
                        np.append(particle.gbest, np.zeros(shape=zero_padding_length)) - particle.position) * mask
             )
 
         elif len(particle.gbest) > len(particle.exemplar):
             # cut gbest
-            v_t += acc_const2 * random.uniform(0, 1) + (particle.gbest[:len(particle.exemplar)] - particle.position)
+            v_t += acc_const2 * random.uniform(0, 1) * (particle.gbest[:len(particle.exemplar)] - particle.position)
         else:
-            v_t += acc_const2 * random.uniform(0, 1) + (particle.gbest - particle.position)
+            v_t += acc_const2 * random.uniform(0, 1) * (particle.gbest - particle.position)
 
     x_t = particle.position + v_t
 
@@ -179,6 +196,23 @@ def clpsoPositionUpdate(
         particle = _clipParticleValues(particle, clip_values)
 
     return particle
+
+
+def clpsoPositionUpdateWithDynamicInertia(
+        particle: Particle,
+        inertia: float,
+        acc_const1: float,
+        acc_const2: float = None,
+        clip_values: tuple or np.ndarray = None,
+        seed: int = None) -> Particle:
+    inertia = inertia + 0.5 * np.exp(-np.sum(np.abs(particle.position - particle.pbest)))
+    return clpsoPositionUpdate(
+        particle=particle,
+        inertia=inertia,
+        acc_const1=acc_const1,
+        acc_const2=acc_const2,
+        clip_values=clip_values,
+        seed=seed)
 
 
 def particleContainsAttribute(

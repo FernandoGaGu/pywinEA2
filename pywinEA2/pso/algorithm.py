@@ -17,7 +17,9 @@ from .population import (
 )
 from .particle import (
     vanillaPositionUpdate,
-    clpsoPositionUpdate
+    vanillaPositionUpdateWithDynamicInertia,
+    clpsoPositionUpdate,
+    clpsoPositionUpdateWithDynamicInertia
 )
 from .util import rankFeatures, getLearningProb
 from .report import PSOReport
@@ -34,7 +36,9 @@ PSO_VALID_REFERENCE_UPDATES = {
 # valid functions used to update the particle position and speed
 PARTICLE_VALID_UPDATES = {
     'simple': vanillaPositionUpdate,
-    'clpso': clpsoPositionUpdate
+    'simple_dynamic_inertia': vanillaPositionUpdateWithDynamicInertia,
+    'clpso': clpsoPositionUpdate,
+    'clpso_dynamic_inertia': clpsoPositionUpdateWithDynamicInertia
 }
 
 # valid actions returned by Callbacks
@@ -55,8 +59,8 @@ def psoSimple(
         particle_update_kw: dict = None,
         particle_init_position: str = 'random',
         particle_init_speed: str = 'random',
-        particle_init_position_kwargs: dict = None,
-        particle_init_speed_kwargs: dict = None,
+        particle_init_position_kw: dict = None,
+        particle_init_speed_kw: dict = None,
         report: PSOReport = None,
         callbacks: List[Callback] = None,
         verbose: bool = True,
@@ -79,9 +83,11 @@ def psoSimple(
     assert pso_reference_update in PSO_VALID_REFERENCE_UPDATES.keys()
     assert particle_update in PARTICLE_VALID_UPDATES.keys()
 
-    pso_evaluation_kw       = {} if pso_evaluation_kw       is None else pso_evaluation_kw
-    pso_reference_update_kw = {} if pso_reference_update_kw is None else pso_reference_update_kw
-    particle_update_kw      = {} if particle_update_kw      is None else particle_update_kw
+    pso_evaluation_kw          = {} if pso_evaluation_kw          is None else pso_evaluation_kw
+    pso_reference_update_kw    = {} if pso_reference_update_kw    is None else pso_reference_update_kw
+    particle_update_kw         = {} if particle_update_kw         is None else particle_update_kw
+    particle_init_position_kw  = {} if particle_init_position_kw  is None else particle_init_position_kw
+    particle_init_speed_kw     = {} if particle_update_kw         is None else particle_init_speed_kw
 
     if seed is None:
         np.random.seed(seed)
@@ -99,8 +105,8 @@ def psoSimple(
         num_features=fitness_function.getNumFeatures(),
         particle_init_position=particle_init_position,
         particle_init_speed=particle_init_speed,
-        particle_init_position_kwargs=particle_init_position_kwargs,
-        particle_init_speed_kwargs=particle_init_speed_kwargs,
+        particle_init_position_kwargs=particle_init_position_kw,
+        particle_init_speed_kwargs=particle_init_speed_kw,
         seed=seed)
 
     curr_iteration = 0
@@ -149,28 +155,29 @@ def psoSimple(
 
 
 def vlpso(
-        population_size: int,
-        num_population_div: int,
-        fitness_function: pea2_base.FitnessStrategy,
-        max_iterations: int,
-        rank_function: str,
-        alpha: int,
-        beta: int,
-        rank_function_kw: dict = None,
-        learning_prob_kw: dict = None,
-        pso_evaluation: str = 'binary',
-        pso_evaluation_kw: dict = None,
-        pso_reference_update: str = 'simple',
-        pso_reference_update_kw: dict = None,
-        particle_update_kw: dict = None,
-        particle_init_position: str = 'random',
-        particle_init_speed: str = 'random',
-        particle_init_position_kwargs: dict = None,
-        particle_init_speed_kwargs: dict = None,
-        report: PSOReport = None,
-        callbacks: list = None,
-        verbose: bool = True,
-        seed: int = None
+    population_size: int,
+    num_population_div: int,
+    fitness_function: pea2_base.FitnessStrategy,
+    max_iterations: int,
+    rank_function: str,
+    alpha: int,
+    beta: int,
+    rank_function_kw: dict = None,
+    learning_prob_kw: dict = None,
+    pso_evaluation: str = 'binary',
+    pso_evaluation_kw: dict = None,
+    pso_reference_update: str = 'simple',
+    pso_reference_update_kw: dict = None,
+    particle_update: str = 'simple',
+    particle_update_kw: dict = None,
+    particle_init_position: str = 'random',
+    particle_init_speed: str = 'random',
+    particle_init_position_kw: dict = None,
+    particle_init_speed_kw: dict = None,
+    report: PSOReport = None,
+    callbacks: list = None,
+    verbose: bool = True,
+    seed: int = None
 ):
     """ Algorithm steps:
 
@@ -183,13 +190,16 @@ def vlpso(
     assert issubclass(type(fitness_function), pea2_base.FitnessStrategy)
     assert pso_evaluation in PSO_VALID_EVALUATIONS.keys()
     assert pso_reference_update in PSO_VALID_REFERENCE_UPDATES.keys()
+    assert particle_update in ['clpso', 'clpso_dynamic_inertia']
 
     # select optional arguments
-    rank_function_kw        = {} if rank_function_kw      is None else rank_function_kw
-    learning_prob_kw        = {} if learning_prob_kw      is None else learning_prob_kw
-    pso_evaluation_kw       = {} if pso_evaluation_kw       is None else pso_evaluation_kw
-    pso_reference_update_kw = {} if pso_reference_update_kw is None else pso_reference_update_kw
-    particle_update_kw      = {} if particle_update_kw      is None else particle_update_kw
+    rank_function_kw          = {} if rank_function_kw          is None else rank_function_kw
+    learning_prob_kw          = {} if learning_prob_kw          is None else learning_prob_kw
+    pso_evaluation_kw         = {} if pso_evaluation_kw         is None else pso_evaluation_kw
+    pso_reference_update_kw   = {} if pso_reference_update_kw   is None else pso_reference_update_kw
+    particle_update_kw        = {} if particle_update_kw        is None else particle_update_kw
+    particle_init_position_kw = {} if particle_init_position_kw is None else particle_init_position_kw
+    particle_init_speed_kw    = {} if particle_init_speed_kw    is None else particle_init_speed_kw
     report = PSOReport() if report is None else report
 
     if seed is None:
@@ -224,8 +234,8 @@ def vlpso(
         num_divisions=num_population_div,
         particle_init_position=particle_init_position,
         particle_init_speed=particle_init_speed,
-        particle_init_position_kwargs=particle_init_position_kwargs,
-        particle_init_speed_kwargs=particle_init_speed_kwargs,
+        particle_init_position_kwargs=particle_init_position_kw,
+        particle_init_speed_kwargs=particle_init_speed_kw,
         seed=seed)
 
     # 3. Initialize exemplars
@@ -299,7 +309,7 @@ def vlpso(
 
             # 8a. Update particles position and speed
             particles = list(map(
-                partial(PARTICLE_VALID_UPDATES['clpso'], seed=seed, **particle_update_kw), particles))
+                partial(PARTICLE_VALID_UPDATES[particle_update], seed=seed, **particle_update_kw), particles))
 
             # Check particle improvement
             for p in particles:

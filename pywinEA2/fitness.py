@@ -1,7 +1,10 @@
 import numpy as np
 import sklearn
 import sklearn.metrics as sk_metrics
-from sklearn.model_selection import BaseCrossValidator, cross_val_score
+from sklearn.model_selection import (
+    BaseCrossValidator,
+    cross_val_score,
+    LeaveOneOut)
 from copy import deepcopy
 
 from pywinEA2 import base as pea2_base
@@ -79,16 +82,31 @@ class FeatureSelectionFitness(pea2_base.FitnessStrategy):
         if self.cv is not None:
             if self._score_repr in FeatureSelectionFitness.SCORES_TO_INVERT:
                 score_repr = 'neg_{}'.format(self._score_repr)
+            else:
+                score_repr = self._score_repr
 
-            # apply cross validation
-            scores = cross_val_score(
-                estimator=model_copy,
-                X=Xsub,
-                y=self._y,
-                scoring=score_repr,
-                cv=self.cv,
-                n_jobs=self.n_jobs,
-                error_score='raise')
+            if isinstance(self.cv, LeaveOneOut):
+                # apply cross validation schema
+                y_preds = []
+                y_trues = []
+                for train_idx, test_idx in self.cv.split(Xsub):
+                    X_train, y_train = Xsub[train_idx], self._y[train_idx]
+                    X_test, y_test = Xsub[test_idx], self._y[test_idx]
+                    y_preds.append(model_copy.fit(X_train, y_train).predict(X_test))
+                    y_trues.append(y_test)
+                y_preds = np.array(y_preds)
+                y_trues = np.array(y_trues)
+                scores = self._score(y_pred=y_preds, y_true=y_trues)
+            else:
+                # apply cross validation
+                scores = cross_val_score(
+                    estimator=model_copy,
+                    X=Xsub,
+                    y=self._y,
+                    scoring=score_repr,
+                    cv=self.cv,
+                    n_jobs=self.n_jobs,
+                    error_score='raise')
 
             # IMPORTANT. The score that is returned is therefore negated when it is a score
             # that should be minimized and left positive if it is a score that should be maximized.

@@ -1,5 +1,8 @@
 import pandas as pd
 import numpy as np
+from sklearn.feature_selection import (
+    mutual_info_classif,
+    mutual_info_regression)
 
 
 def getLearningProb(rank: int, population_size: int, min_prob: float = 0.05, max_prob: float = 0.5) -> float:
@@ -16,6 +19,23 @@ def pearsonCorrImportance(data: pd.DataFrame, x_feats: list, y_feat: str, **_) -
         corrs[feat] = abs(np.corrcoef(data[feat].values, data[y_feat].values)[0, 1])
 
     return corrs
+
+
+def mutualInformationImportance(data: pd.DataFrame, x_feats: list, y_feat: str, task: str, **_) -> dict:
+    """ Calculate feature importance based on Pearson's correlation """
+    if task in ['c', 'classification']:
+        mi = mutual_info_classif(  # use default parameters
+            X=data[x_feats].values,
+            y=data[y_feat].values)
+    elif task in ['r', 'regression']:
+        mi = mutual_info_regression(  # use default parameters
+            X=data[x_feats].values,
+            y=data[y_feat].values)
+    else:
+        raise TypeError('"task" argument must be one of: "classification" or "c", or "regression" or "r"')
+    mi_scores = {f: mi_score for f, mi_score in zip(x_feats, mi)}
+
+    return mi_scores
 
 
 def rankFeatures(data: pd.DataFrame, x_feats: list, y_feat: str, rankFunction: str, **kwargs) -> pd.DataFrame:
@@ -40,7 +60,8 @@ def rankFeatures(data: pd.DataFrame, x_feats: list, y_feat: str, rankFunction: s
 
 
 VALID_RANK_FUNCTIONS = {
-    'pearsonCorrImportance': pearsonCorrImportance
+    'pearsonCorrImportance': pearsonCorrImportance,
+    'mutualInformationImportance': mutualInformationImportance,
 }
 
 

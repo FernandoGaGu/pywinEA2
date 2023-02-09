@@ -155,7 +155,10 @@ def displayConvergence(
         legend_size: int = 15,
         title: str or None = None,
         title_size: int = 20,
-        axes_label_size: int = 15):
+        axes_label_size: int = 15,
+        save_plot: str = None,
+        display: bool = True
+):
     """ DESCRIPTION """
     fig, ax = plt.subplots(figsize=figsize)
 
@@ -191,7 +194,11 @@ def displayConvergence(
         ax.set_title(title, size=title_size)
     ax.set_ylabel('Objective function', size=axes_label_size)
     ax.set_xlabel('Iteration', size=axes_label_size)
-    plt.show()
+
+    if save_plot is not None:
+        plt.savefig(save_plot)
+    if display:
+        plt.show()
 
 
 def displayMultiObjectiveConvergence(
@@ -205,7 +212,10 @@ def displayMultiObjectiveConvergence(
     hy_linecolor: str = '#C0392B',
     hy_lw: int = 4,
     cmap: str = 'tab10',
-    objective_names: list or None = None):
+    objective_names: list or None = None,
+    save_plot: str = None,
+    display: bool = True
+):
     """ Description """
     fig, ax = plt.subplots(figsize=figsize)
 
@@ -272,18 +282,25 @@ def displayMultiObjectiveConvergence(
     if title is not None:
         plt.title(title, size=title_size)
 
-    plt.show()
+    if save_plot is not None:
+        plt.savefig(save_plot)
+
+    if display:
+        plt.show()
 
 
 def displayParetoFront(
-        report,
-        figsize: tuple = (10, 6),
-        grid_opacity: float = 0.2,
-        color: str = '#C0392B',
-        marker_size: int = 50,
-        title_size: int = 20,
-        axes_label_size: int = 15,
-        objective_names: list or None = None):
+    report,
+    figsize: tuple = (10, 6),
+    grid_opacity: float = 0.2,
+    color: str = '#C0392B',
+    marker_size: int = 50,
+    title_size: int = 20,
+    axes_label_size: int = 15,
+    objective_names: list or None = None,
+    save_plot: str = None,
+    display: bool = True
+):
 
     pareto_front = report.pareto_front
     fitness = np.array([ind.fitness.values for ind in pareto_front])
@@ -311,8 +328,10 @@ def displayParetoFront(
     ax.grid(grid_opacity)
     ax.set_ylabel(objective_names[0], size=axes_label_size)
     ax.set_xlabel(objective_names[1], size=axes_label_size)
-
-    plt.show()
+    if save_plot is not None:
+        plt.savefig(save_plot)
+    if display:
+        plt.show()
 
 
 
