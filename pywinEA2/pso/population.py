@@ -6,7 +6,7 @@ from typing import List, Tuple
 from collections import defaultdict
 from copy import deepcopy
 
-from .particle import Particle, randomInit
+from .particle import Particle
 from .. import base as pea2_base
 
 
@@ -161,6 +161,8 @@ def evaluateBinary(
 
 def vanillaReferencesUpdate(
         particles: List[Particle],
+        particle_init_position: str = 'random',
+        particle_init_position_kwargs: dict = None,
         **_) -> List[Particle]:
     """ Update particle's pbest and gbest based on the fitness function.
     The particles need to have been previously evaluated and therefore the curr_fitness_value must not be None.
@@ -181,8 +183,11 @@ def vanillaReferencesUpdate(
             # duplicate particle
             shadow_particle = random.choice(
                 [p for p in particles if len(p) == len(particle) and p.curr_fitness_value != -np.inf])
-            particle.position = deepcopy(shadow_particle.position)
-            particle.pbest = deepcopy(particle.position)
+            if len(shadow_particle) > 0:
+                particle.position = deepcopy(shadow_particle.position)
+            else:  # all particles contain invalid values
+                particle.position = Particle.VALID_PARTICLE_INIT[particle_init_position](
+                    size=len(particle), **particle_init_position_kwargs)
         else:
             particle.pbest_count += 1  # update pbest changing count
 
@@ -232,7 +237,13 @@ def exemplarAssignment(particles: List[Particle]):
 
 
 # TODO. Parallelization
-def lengthChanging(particles: List[Particle]) -> List[Particle]:
+def lengthChanging(
+        particles: List[Particle],
+        particle_init_position: str = 'random',
+        particle_init_speed: str = 'random',
+        particle_init_position_kw: dict = None,
+        particle_init_speed_kw: dict = None
+) -> List[Particle]:
     """ Length changing procedure as described in algorithm 2 of VLPSO. """
     # calculate the average fitness value per division
     fitness_per_division = defaultdict(list)
@@ -262,10 +273,18 @@ def lengthChanging(particles: List[Particle]) -> List[Particle]:
                     if len(p) < new_len:
                         # append more dimensions to particles in division v to have
                         # new_len dimensions
-                        p.position = np.append(p.position, randomInit(new_len - len(p)))
-                        p.speed = np.append(p.speed, randomInit(new_len - len(p)))
-                        p.pbest = np.append(p.pbest, randomInit(new_len - len(p)))
-                        p.exemplar = np.append(p.exemplar, randomInit(new_len - len(p)))
+                        p.position = np.append(p.position,
+                                               Particle.VALID_PARTICLE_INIT[particle_init_position](
+                                                   size=(new_len - len(p)), **particle_init_position_kw))
+                        p.speed = np.append(p.speed,
+                                            Particle.VALID_PARTICLE_INIT[particle_init_speed](
+                                                   size=(new_len - len(p)), **particle_init_speed_kw))
+                        p.pbest = np.append(p.pbest,
+                                            Particle.VALID_PARTICLE_INIT[particle_init_position](
+                                                size=(new_len - len(p)), **particle_init_position_kw))
+                        p.exemplar = np.append(p.exemplar,
+                                               Particle.VALID_PARTICLE_INIT[particle_init_speed](
+                                                   size=(new_len - len(p)), **particle_init_speed_kw))
                         p.pbest_count = 0
                         p.gbest_count = 0
 

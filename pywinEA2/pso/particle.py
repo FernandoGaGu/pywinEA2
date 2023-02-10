@@ -134,8 +134,13 @@ def vanillaPositionUpdateWithDynamicInertia(
         acc_const1: float,
         acc_const2: float,
         clip_values: tuple or np.ndarray = None,
+        dynamic_inertia_weight: float = 0.5,
         seed: int = None) -> Particle:
-    inertia = inertia + 0.5 * np.exp(-np.sum(np.abs(particle.position - particle.pbest)))
+    assert 0 <= dynamic_inertia_weight <= 1
+    inertia = (
+            (1 - dynamic_inertia_weight) * inertia +
+            dynamic_inertia_weight * np.exp(-np.sum(np.abs(particle.position - particle.pbest)))
+    )
     return vanillaPositionUpdate(
         particle=particle,
         inertia=inertia,
@@ -199,13 +204,19 @@ def clpsoPositionUpdate(
 
 
 def clpsoPositionUpdateWithDynamicInertia(
-        particle: Particle,
-        inertia: float,
-        acc_const1: float,
-        acc_const2: float = None,
-        clip_values: tuple or np.ndarray = None,
-        seed: int = None) -> Particle:
-    inertia = inertia + 0.5 * np.exp(-np.sum(np.abs(particle.position - particle.pbest)))
+    particle: Particle,
+    inertia: float,
+    acc_const1: float,
+    acc_const2: float = None,
+    clip_values: tuple or np.ndarray = None,
+    dynamic_inertia_weight: float = 0.5,
+    seed: int = None
+) -> Particle:
+    assert 0 <= dynamic_inertia_weight <= 1
+    inertia = (
+            (1 - dynamic_inertia_weight) * inertia +
+            dynamic_inertia_weight * np.exp(-np.sum(np.abs(particle.position - particle.pbest)))
+    )
     return clpsoPositionUpdate(
         particle=particle,
         inertia=inertia,
