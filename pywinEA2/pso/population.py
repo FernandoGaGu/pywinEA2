@@ -162,7 +162,7 @@ def evaluateBinary(
 def vanillaReferencesUpdate(
         particles: List[Particle],
         particle_init_position: str = 'random',
-        particle_init_position_kwargs: dict = None,
+        particle_init_position_kwargs: dict = {},
         **_) -> List[Particle]:
     """ Update particle's pbest and gbest based on the fitness function.
     The particles need to have been previously evaluated and therefore the curr_fitness_value must not be None.
@@ -181,10 +181,10 @@ def vanillaReferencesUpdate(
             particle.pbest_count = 0   # update pbest changing count
         elif particle.curr_fitness_value == -np.inf:
             # duplicate particle
-            shadow_particle = random.choice(
-                [p for p in particles if len(p) == len(particle) and p.curr_fitness_value != -np.inf])
-            if len(shadow_particle) > 0:
-                particle.position = deepcopy(shadow_particle.position)
+            valid_particles = [p for p in particles if len(p) == len(particle) and p.curr_fitness_value != -np.inf]
+
+            if len(valid_particles) > 0:
+                particle.position = deepcopy(random.choice(valid_particles).position)
             else:  # all particles contain invalid values
                 particle.position = Particle.VALID_PARTICLE_INIT[particle_init_position](
                     size=len(particle), **particle_init_position_kwargs)

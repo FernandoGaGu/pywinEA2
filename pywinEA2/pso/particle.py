@@ -1,6 +1,6 @@
 import numpy as np
 import random
-
+from copy import deepcopy
 
 def randomInit(
         size: int,
@@ -66,7 +66,7 @@ class Particle(object):
         self.curr_fitness_value = -np.inf
         self.best_fitness_value = -np.inf
         self.gbest_fitness_value = -np.inf
-        self.pbest = None
+        self.pbest = deepcopy(self.position)
         self.gbest = None
         # parameters used for VLPSO
         self.pbest_count = 0
