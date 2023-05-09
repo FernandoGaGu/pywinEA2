@@ -10,6 +10,41 @@ from .particle import Particle
 from .. import base as pea2_base
 
 
+def removeParticleFeatures(
+        particles: list,
+        mask: np.ndarray = None,
+        threshold: float = None,
+        min_freq: int = 1):
+    """ Function that eliminates those features that have not been selected by more than min_freq particles
+    considering a threshold of threshold as binarization for feature selection. """
+    new_particles = deepcopy(particles)
+    if mask is None:
+        particle_masks = np.array([particle.position < threshold for particle in particles])
+        feature_mask = (particle_masks.sum(axis=0) >= min_freq)
+    else:
+        assert isinstance(mask, np.ndarray)
+        feature_mask = mask
+
+    # reset particle arguments
+    for particle in new_particles:
+        particle.speed = deepcopy(particle.speed[feature_mask])
+        particle.position = deepcopy(particle.position[feature_mask])
+        particle.pbest = deepcopy(particle.pbest[feature_mask])
+        particle.gbest = deepcopy(particle.gbest[feature_mask])
+        particle.prev_fitness_value = -np.inf
+        particle.curr_fitness_value = -np.inf
+        particle.best_fitness_value = -np.inf
+        particle.gbest_fitness_value = -np.inf
+        particle.pbest_count = 0
+        particle.gbest_count = 0
+        particle.learning_prob = None
+        particle.exemplar = None
+        particle.renew_exemplar = False
+        particle.rank = 0
+
+    return new_particles
+
+
 def generateVariableLengthParticles(
         population_size: int,
         num_features: int,

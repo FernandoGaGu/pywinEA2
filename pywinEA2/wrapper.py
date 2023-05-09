@@ -186,6 +186,9 @@ class FeatureSelectionGA(pea2_base.BaseWrapper):
         """ Function used to get the configured toolbox (DEAP).  """
         return self._toolbox
 
+    def getFitnessObj(self):
+        return self._fitness_obj
+
     def _set_parameters(self, input_parameters: dict):
         """ Method used to set the algorithm parameters. """
         # model-data parameters
@@ -421,3 +424,5 @@ class MultiObjFeatureSelectionNSGA2(FeatureSelectionGA):
         self._toolbox.register('select', tools.selNSGA2)
         self._toolbox.register('mate', FeatureSelectionGA.VALID_CROSSOVER_OPERATORS[self._crossover_op], **self._crossover_kw)
         self._toolbox.register('mutate', FeatureSelectionGA.VALID_MUTATION_OPERATORS[self._mutation_op], **self._mutation_kw)
+
+

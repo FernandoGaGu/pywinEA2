@@ -98,15 +98,17 @@ class FeatureSelectionFitness(pea2_base.FitnessStrategy):
                 y_trues = np.array(y_trues)
                 scores = self._score(y_pred=y_preds, y_true=y_trues)
             else:
-                # apply cross validation
-                scores = cross_val_score(
-                    estimator=model_copy,
-                    X=Xsub,
-                    y=self._y,
-                    scoring=score_repr,
-                    cv=self.cv,
-                    n_jobs=self.n_jobs,
-                    error_score='raise')
+                # apply cross validation schema
+                y_preds = []
+                y_trues = []
+                for train_idx, test_idx in self.cv.split(Xsub):
+                    X_train, y_train = Xsub[train_idx], self._y[train_idx]
+                    X_test, y_test = Xsub[test_idx], self._y[test_idx]
+                    y_preds.append(np.array(model_copy.fit(X_train, y_train).predict(X_test)))
+                    y_trues.append(np.array(y_test))
+                y_preds = np.concatenate(y_preds)
+                y_trues = np.concatenate(y_trues)
+                scores = self._score(y_pred=y_preds, y_true=y_trues)
 
             # IMPORTANT. The score that is returned is therefore negated when it is a score
             # that should be minimized and left positive if it is a score that should be maximized.

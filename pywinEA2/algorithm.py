@@ -3,7 +3,6 @@ import numpy as np
 from deap import algorithms
 from deap import tools
 from deap.benchmarks.tools import hypervolume
-from functools import partial
 
 from pywinEA2 import base as pea2_base
 from pywinEA2 import validation as pea2_valid
@@ -327,8 +326,8 @@ def nsga2(population, toolbox, cxpb, mutpb, ngen, halloffame=None, stats=None, c
     # Begin the generational process
     hypervolumes_l = []
     for gen in range(1, ngen):
-        # Vary the population
-        offspring = tools.selTournamentDCD(population, len(population))
+        # Vary the population (k must be multiple of 4)
+        offspring = tools.selTournamentDCD(population, len(population) - (len(population) % 4))
         offspring = algorithms.varAnd(offspring, toolbox, cxpb, mutpb)
 
         # Evaluate the individuals with an invalid fitness

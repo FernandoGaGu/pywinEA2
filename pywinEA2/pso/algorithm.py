@@ -16,6 +16,7 @@ from .population import (
     lengthChanging
 )
 from .particle import (
+    Particle,
     vanillaPositionUpdate,
     vanillaPositionUpdateWithDynamicInertia,
     clpsoPositionUpdate,
@@ -48,9 +49,10 @@ ALGORITHM_PRIMITIVES = [
 
 
 def psoSimple(
-        population_size: int,
         fitness_function: pea2_base.FitnessStrategy,
         max_iterations: int,
+        population_size: int or None = None,
+        population: List[Particle] = None,
         pso_evaluation: str = 'binary',
         pso_evaluation_kw: dict = None,
         pso_reference_update: str = 'simple',
@@ -76,7 +78,8 @@ def psoSimple(
 
 
     """
-    assert isinstance(population_size, int)
+    assert isinstance(population_size, (int, type(None)))
+    assert isinstance(population, (list, type(None)))
     assert isinstance(max_iterations, int)
     assert issubclass(type(fitness_function), pea2_base.FitnessStrategy)
     assert pso_evaluation in PSO_VALID_EVALUATIONS.keys()
@@ -100,14 +103,19 @@ def psoSimple(
         progress_bar = tqdm(total=max_iterations)
 
     # 1. Initialize particles
-    particles = generateParticles(
-        population_size=population_size,
-        num_features=fitness_function.getNumFeatures(),
-        particle_init_position=particle_init_position,
-        particle_init_speed=particle_init_speed,
-        particle_init_position_kwargs=particle_init_position_kw,
-        particle_init_speed_kwargs=particle_init_speed_kw,
-        seed=seed)
+    if population_size is not None:
+        particles = generateParticles(
+            population_size=population_size,
+            num_features=fitness_function.getNumFeatures(),
+            particle_init_position=particle_init_position,
+            particle_init_speed=particle_init_speed,
+            particle_init_position_kwargs=particle_init_position_kw,
+            particle_init_speed_kwargs=particle_init_speed_kw,
+            seed=seed)
+    elif population is not None:
+        particles = population
+    else:
+        raise TypeError('Either "population_size" or "population" arguments must be provided.')
 
     curr_iteration = 0
     while curr_iteration < max_iterations:
