@@ -258,7 +258,7 @@ class FeatureSelectionGA(pea2_base.BaseWrapper):
         pea2_valid.checkMultiInputTypes(
             ('data',            data,            [pd.DataFrame]),
             ('model',           model,           [sklearn.base.BaseEstimator]),
-            ('score',           score,           [str]),
+            ('score',           score,           [str, type(lambda:None)]),
             ('y',               y,               [str, list]),
             ('population_size', population_size, [int]),
             ('max_generations', max_generations, [int]),

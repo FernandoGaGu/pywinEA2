@@ -28,12 +28,11 @@ class FeatureSelectionFitness(pea2_base.FitnessStrategy):
         'mean_absolute_error': sk_metrics.mean_absolute_error,
         'mean_squared_error': sk_metrics.mean_squared_error,
     }
-    SCORES_TO_INVERT = ['mean_absolute_error', 'mean_squared_error']   # sklearn returns negative values
 
     def __init__(
             self,
             model: sklearn.base.BaseEstimator,
-            score: str,
+            score: str or callable,
             X: np.ndarray,
             y: np.ndarray,
             X_fixed: np.ndarray or None = None,
@@ -51,9 +50,13 @@ class FeatureSelectionFitness(pea2_base.FitnessStrategy):
         self._X = deepcopy(X)  # avoid inplace modifications
         self._X_fixed = deepcopy(X_fixed)
         self._y = deepcopy(y)
-        self._score = FeatureSelectionFitness.VALID_SCORES[score.lower()]
+        if isinstance(score, str):
+            self._score = FeatureSelectionFitness.VALID_SCORES[score.lower()]
+            self._score_repr = score.lower()
+        else:
+            self._score = score
+            self._score_repr = '{}'.format(score)
         self._return_std = return_std
-        self._score_repr = score.lower()
 
     def getNumFeatures(self) -> int:
         return self._X.shape[1]
@@ -80,11 +83,6 @@ class FeatureSelectionFitness(pea2_base.FitnessStrategy):
         model_copy = sklearn.base.clone(self.model)
 
         if self.cv is not None:
-            if self._score_repr in FeatureSelectionFitness.SCORES_TO_INVERT:
-                score_repr = 'neg_{}'.format(self._score_repr)
-            else:
-                score_repr = self._score_repr
-
             if isinstance(self.cv, LeaveOneOut):
                 # apply cross validation schema
                 y_preds = []
@@ -110,10 +108,6 @@ class FeatureSelectionFitness(pea2_base.FitnessStrategy):
                 y_trues = np.concatenate(y_trues)
                 scores = self._score(y_pred=y_preds, y_true=y_trues)
 
-            # IMPORTANT. The score that is returned is therefore negated when it is a score
-            # that should be minimized and left positive if it is a score that should be maximized.
-            if self._score_repr in FeatureSelectionFitness.SCORES_TO_INVERT:
-                scores = -1 * scores
             if self._return_std:
                 return np.mean(scores), np.std(scores)
             return np.mean(scores),
@@ -169,23 +163,30 @@ class FeatureSelectionFitnessMinFeats(FeatureSelectionFitness):
         model_copy = sklearn.base.clone(self.model)
 
         if self.cv is not None:
-            if self._score_repr in FeatureSelectionFitness.SCORES_TO_INVERT:
-                score_repr = 'neg_{}'.format(self._score_repr)
-
-            # apply cross validation
-            scores = cross_val_score(
-                estimator=model_copy,
-                X=Xsub,
-                y=self._y,
-                scoring=score_repr,
-                cv=self.cv,
-                n_jobs=self.n_jobs,
-                error_score='raise')
-
-            # IMPORTANT. The score that is returned is therefore negated when it is a score
-            # that should be minimized and left positive if it is a score that should be maximized.
-            if self._score_repr in FeatureSelectionFitness.SCORES_TO_INVERT:
-                scores = -1 * scores
+            if isinstance(self.cv, LeaveOneOut):
+                # apply cross validation schema
+                y_preds = []
+                y_trues = []
+                for train_idx, test_idx in self.cv.split(Xsub):
+                    X_train, y_train = Xsub[train_idx], self._y[train_idx]
+                    X_test, y_test = Xsub[test_idx], self._y[test_idx]
+                    y_preds.append(model_copy.fit(X_train, y_train).predict(X_test))
+                    y_trues.append(y_test)
+                y_preds = np.array(y_preds)
+                y_trues = np.array(y_trues)
+                scores = self._score(y_pred=y_preds, y_true=y_trues)
+            else:
+                # apply cross validation schema
+                y_preds = []
+                y_trues = []
+                for train_idx, test_idx in self.cv.split(Xsub):
+                    X_train, y_train = Xsub[train_idx], self._y[train_idx]
+                    X_test, y_test = Xsub[test_idx], self._y[test_idx]
+                    y_preds.append(np.array(model_copy.fit(X_train, y_train).predict(X_test)))
+                    y_trues.append(np.array(y_test))
+                y_preds = np.concatenate(y_preds)
+                y_trues = np.concatenate(y_trues)
+                scores = self._score(y_pred=y_preds, y_true=y_trues)
 
             if self._scale_features is not None:
                 return np.mean(scores), self._scale_features(np.sum(features))

@@ -188,7 +188,8 @@ def vlpso(
     seed: int = None
 ):
     """ Algorithm steps:
-
+    alpha -> Renew exemplars
+    beta -> length changing
 
     """
     assert isinstance(population_size, int)
