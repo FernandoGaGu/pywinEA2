@@ -99,7 +99,7 @@ class FeatureSelectionFitness(pea2_base.FitnessStrategy):
                 # apply cross validation schema
                 y_preds = []
                 y_trues = []
-                for train_idx, test_idx in self.cv.split(Xsub):
+                for train_idx, test_idx in self.cv.split(Xsub, self._y):
                     X_train, y_train = Xsub[train_idx], self._y[train_idx]
                     X_test, y_test = Xsub[test_idx], self._y[test_idx]
                     y_preds.append(np.array(model_copy.fit(X_train, y_train).predict(X_test)))
@@ -179,7 +179,7 @@ class FeatureSelectionFitnessMinFeats(FeatureSelectionFitness):
                 # apply cross validation schema
                 y_preds = []
                 y_trues = []
-                for train_idx, test_idx in self.cv.split(Xsub):
+                for train_idx, test_idx in self.cv.split(Xsub, self._y):
                     X_train, y_train = Xsub[train_idx], self._y[train_idx]
                     X_test, y_test = Xsub[test_idx], self._y[test_idx]
                     y_preds.append(np.array(model_copy.fit(X_train, y_train).predict(X_test)))

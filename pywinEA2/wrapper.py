@@ -5,7 +5,6 @@
 #
 import random
 import pandas as pd
-import numpy as np
 import sklearn
 from sklearn.model_selection import RepeatedKFold, RepeatedStratifiedKFold
 from deap import creator

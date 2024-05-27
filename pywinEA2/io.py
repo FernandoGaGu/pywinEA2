@@ -7,7 +7,6 @@ import pickle
 import os
 import traceback
 from datetime import datetime
-from alive_progress import alive_bar
 from tqdm import tqdm
 
 from .wrapper import FeatureSelectionGA, MultiObjFeatureSelectionNSGA2
@@ -95,9 +94,7 @@ def getProgressBar(total) -> tuple:
         bar = tqdm(total=total)
         updateBar = updateTQDM
     else:
-        print('Using alive bar')
-        bar = alive_bar(total, bar='fish')
-        updateBar = updateAP
+        raise NotImplementedError('This feature hasn\'t been yet implemented')
 
     return bar, updateBar
 
