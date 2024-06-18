@@ -9,4 +9,5 @@ from .environment import (
 from . import fitness
 from . import pso
 from . import io
+from . import base
 from .io import save, load
