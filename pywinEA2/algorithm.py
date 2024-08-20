@@ -4,9 +4,9 @@ from deap import algorithms
 from deap import tools
 from deap.benchmarks.tools import hypervolume
 
-from pywinEA2 import base as pea2_base
-from pywinEA2 import validation as pea2_valid
-from pywinEA2 import report as pea2_report
+from . import base as pea2_base
+from . import validation as pea2_valid
+from . import report as pea2_report
 
 
 def run(alg: pea2_base.BaseWrapper, type: str = 'eaSimple', verbose: bool = True, hof_size: int = 1,

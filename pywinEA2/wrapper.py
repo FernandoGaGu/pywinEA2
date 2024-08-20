@@ -13,9 +13,9 @@ from deap import tools
 from functools import partial
 from copy import deepcopy
 
-from pywinEA2 import fitness as pea2_fitness
-from pywinEA2 import base as pea2_base
-from pywinEA2 import validation as pea2_valid
+from . import fitness as pea2_fitness
+from . import base as pea2_base
+from . import validation as pea2_valid
 
 
 class FeatureSelectionGA(pea2_base.BaseWrapper):

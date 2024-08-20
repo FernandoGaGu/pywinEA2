@@ -7,8 +7,8 @@ from sklearn.model_selection import (
     LeaveOneOut)
 from copy import deepcopy
 
-from pywinEA2 import base as pea2_base
-from pywinEA2 import validation as pea2_valid
+from . import base as pea2_base
+from . import validation as pea2_valid
 
 
 def aucScore(y_pred: np.ndarray, y_true: np.ndarray):

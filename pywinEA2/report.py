@@ -4,8 +4,8 @@ import warnings
 from deap import tools
 from functools import partial
 
-from pywinEA2 import base as pea2_base
-from pywinEA2 import validation as pea2_valid
+from . import base as pea2_base
+from . import validation as pea2_valid
 
 
 def _getFitnessValues(ind):
