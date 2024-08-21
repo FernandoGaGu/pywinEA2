@@ -208,7 +208,7 @@ class FeatureSelectionFitnessMinFeats(FeatureSelectionFitness):
         pea2_valid.checkInputType('obj', obj, [FeatureSelectionFitness])
         wrapped_obj = FeatureSelectionFitnessMinFeats(
             model=obj.model,
-            score=obj._score_repr,
+            score=obj._score,
             X=obj._X,
             y=obj._y,
             X_fixed=obj._X_fixed,
